@@ -5,6 +5,10 @@ Export everything with `./build.sh [sg90|micro2g]` (needs `openscad`); STLs land
 
 ![assembly](assembly.png)
 
+> If you print, remix or build on these parts, please credit this repository
+> (Electronics-AndresForero/flapping-butterfly-clip) and the original Flapping Butterfly Clip author
+> who inspired the idea.
+
 ## Mechanism
 
 One servo turns the **drive gear** (module 1, 16 teeth, 1:1). It meshes with an **idler gear** on a

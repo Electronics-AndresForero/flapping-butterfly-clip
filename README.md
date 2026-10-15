@@ -47,6 +47,13 @@ original author (https://like-nose-ff4.notion.site/Flapping-Butterfly-Clip-v2-Up
 who also published v1 with the gear mechanism. This repository contains an independent firmware rewrite
 and documentation; no STL files or original images are included. Please support the original author.
 
+## If you use or adapt this
+
+Please give credit: link back to this repository (https://github.com/Electronics-AndresForero/flapping-butterfly-clip)
+and to the original *Flapping Butterfly Clip* author above, whose idea inspired it. The MIT license
+requires keeping the copyright notice; crediting is how we ask you to honour the people behind the idea.
+Student projects and remixes are very welcome.
+
 ## License
 
 MIT, see [LICENSE](LICENSE).

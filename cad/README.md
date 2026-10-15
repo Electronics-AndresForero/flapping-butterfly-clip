@@ -6,8 +6,8 @@ Export everything with `./build.sh [sg90|micro2g]` (needs `openscad`); STLs land
 ![assembly](assembly.png)
 
 > If you print, remix or build on these parts, please credit this repository
-> (Electronics-AndresForero/flapping-butterfly-clip) and the original Flapping Butterfly Clip author
-> who inspired the idea.
+> (Electronics-AndresForero/flapping-butterfly-clip) and the original Flapping Butterfly Clip creator
+> **@resetwithregine** (TikTok) who inspired the idea.
 
 ## Mechanism
 

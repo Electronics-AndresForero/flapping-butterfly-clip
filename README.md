@@ -42,10 +42,13 @@ at the cell's rated current, never unattended, and enclose the gears. Details in
 
 ## Credit
 
-Concept and parts approach come from the *Flapping Butterfly Clip v2 Upgrades* guide on Notion by its
-original author (https://like-nose-ff4.notion.site/Flapping-Butterfly-Clip-v2-Upgrades-3f82c3bc670780679308c135163affcc),
-who also published v1 with the gear mechanism. This repository contains an independent firmware rewrite
-and documentation; no STL files or original images are included. Please support the original author.
+This project is inspired by the **Flapping Butterfly Clip** by **@resetwithregine** on TikTok
+([video](https://www.tiktok.com/@resetwithregine/video/7689586414178061589)) and the
+*Flapping Butterfly Clip v2 Upgrades* build guide
+([Notion](https://like-nose-ff4.notion.site/Flapping-Butterfly-Clip-v2-Upgrades-3f82c3bc670780679308c135163affcc)),
+who also published v1 with the original gear mechanism. This repository contains an independent
+firmware rewrite, CAD and documentation; no STL files, code or images from the original are included.
+Please support the original creator.
 
 ## If you use or adapt this
 

@@ -1,0 +1,177 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{amsmath,lmodern,booktabs,array,listings,xcolor,hyperref,enumitem}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black}
+\lstset{basicstyle=\ttfamily\footnotesize,breaklines=true,frame=single,
+  keywordstyle=\color{blue!60!black},commentstyle=\color{green!40!black},language=C++}
+\newcommand{\gpio}[1]{\texttt{GPIO#1}}
+\title{Flapping Butterfly Clip\\\large Build and Concepts Guide (ESP32-C3 + 0.42'' OLED)}
+\author{Electronics-AndresForero}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{What you are building}
+A hair clip with butterfly wings that flap when you touch it. The same firmware runs in two phases:
+\begin{description}[leftmargin=2.2cm,style=nextline]
+  \item[Phase 1, bench] USB powered, push-button, any 5\,V micro servo. Goal: make the code and mechanism work.
+  \item[Phase 2, wearable] Single-cell LiPo, 2\,g servo, TTP223 touch module, battery monitor. Goal: small, light, safe.
+\end{description}
+The ESP32-C3 board has a built-in 72$\times$40 pixel OLED that shows the state, battery voltage and servo angle.
+
+\paragraph{Credit.} Based on the idea and parts approach of the \emph{Flapping Butterfly Clip v2 Upgrades}
+guide on Notion by its original author, who also published the v1 gear mechanism. The firmware and this
+document are an independent rewrite; no STL files or original images are reused. Please support the original author.
+
+\section{Safety first}
+\begin{itemize}
+  \item Use a LiPo with a \textbf{protection PCB}. Never use a bare cell.
+  \item Add a \textbf{hard power switch}. Stopping the wings does \emph{not} disconnect the battery.
+  \item Charge \textbf{off the clip}, at or below the cell's rated current, on a non-flammable surface, never unattended.
+  \item Insulate every joint with heat-shrink. Keep electronics off the metal clip and your skin.
+  \item Enclose the gears. Keep hair and fingers out of the mechanism; disconnect the battery before changing wings.
+  \item Check the boost converter output with a multimeter \emph{before} connecting the board.
+\end{itemize}
+
+\section{Parts}
+The authoritative list is \texttt{hardware/BOM.md}. In short:
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Part & Phase 1 & Phase 2 \\ \midrule
+Board & ESP32-C3 + 0.42'' OLED & same \\
+Servo & SG92R / MG90S (5\,V) & 2\,g, 3.7--4.2\,V \\
+Power & USB & 1S LiPo 150--300\,mAh (+ MT3608) \\
+Trigger & push-button & TTP223 touch module \\
+Extras & 470\,\textmu F cap & switch, divider 2$\times$100\,k, cap, 28--30\,AWG wire \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Concepts}
+\subsection{How a hobby servo is controlled}
+A servo expects a pulse every 20\,ms (50\,Hz). The \emph{width} of that pulse sets the angle:
+about 0.5\,ms is 0$^\circ$ and about 2.4\,ms is 180$^\circ$ (values in \texttt{config.h}). The ESP32Servo
+library generates this with the chip's hardware PWM (LEDC), so it costs no CPU time.
+
+\subsection{Easing}
+Jumping straight to a new angle is jerky. We move along
+\[ e(t) = \tfrac12 - \tfrac12\cos(\pi t), \qquad t\in[0,1], \]
+which accelerates then decelerates. The angle is $\theta = \theta_0 + (\theta_1-\theta_0)\,e(t)$.
+
+\subsection{Non-blocking code}
+\texttt{delay()} freezes the program. Instead, every loop iteration reads \texttt{millis()}, computes where
+the wing \emph{should} be at that instant, and moves on. That is why touch, battery and display keep working during a flap.
+
+\subsection{Debouncing}
+Mechanical contacts chatter for a few milliseconds. A new level is accepted only after it stays unchanged for
+\texttt{DEBOUNCE\_MS}, and one event is produced per press.
+
+\subsection{Voltage divider and the ADC}
+A LiPo reaches 4.2\,V but the ADC tolerates about 2.5\,V. Two equal resistors give
+$V_{pin}=V_{bat}\,R_2/(R_1+R_2)=V_{bat}/2$. The firmware multiplies the reading by 2. Calibrate with a multimeter
+using \texttt{VBAT\_CAL}.
+
+\subsection{Why a boost converter (and when to skip it)}
+The board's own regulator needs about 3.5\,V or more to hold 3.3\,V. As the cell sags, the boost converter keeps
+the board stable down to about 3.0\,V and lets you use more of the capacity, at the price of one extra part,
+about 2\,g, and roughly 15\,\% conversion loss. With a 3.7--4.2\,V servo you may skip it, connect the cell
+straight to \texttt{V5}, and raise \texttt{VBAT\_CUTOFF\_MV} to 3500.
+
+\subsection{Servo supply rule}
+A 3.7--4.2\,V servo is powered from the \emph{battery}; a 5\,V servo from the \emph{boosted} rail. Connecting
+the wrong one either under-drives the servo or damages it. Grounds are always common.
+
+\subsection{Low-battery latch}
+Under load the cell voltage dips. The firmware low-pass filters the reading, requires several consecutive low
+samples, and then \emph{latches} the fault until reboot, so the wings do not restart the moment the voltage recovers.
+The cell's own protection PCB cuts at about 2.5\,V, far too low to be relied upon.
+
+\section{Wiring}
+\textbf{Check the pins first}: flash \texttt{hwcheck} and confirm the OLED answers at \texttt{0x3C} on
+\gpio{5}/\gpio{6}.
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Signal & Pin & Note \\ \midrule
+Servo signal & \gpio{3} & \\
+Trigger & \gpio{4} & button to GND (P1) / TTP223 OUT (P2) \\
+Battery sense & \gpio{0} & ADC1, Phase 2 \\
+OLED SDA/SCL & \gpio{5}/\gpio{6} & on-board, do not use \\
+Avoid & \gpio{2}, \gpio{8}, \gpio{9} & boot strapping pins \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Phase 1}
+Servo red to \texttt{V5}, brown to \texttt{GD}, signal to \gpio{3}; button between \gpio{4} and \texttt{GD};
+470\,\textmu F across \texttt{V5}/\texttt{GD}.
+
+\subsection{Phase 2}
+\begin{enumerate}
+  \item Battery $+$ $\to$ slide switch $\to$ node \texttt{VBAT}. Battery $-$ is common GND.
+  \item \texttt{VBAT} $\to$ MT3608 \texttt{IN+}. Set the output to 5.0\,V with a multimeter, then \texttt{OUT+} $\to$ board \texttt{V5}.
+  \item \texttt{VBAT} $\to$ servo red (3.7--4.2\,V servo). Servo brown to GND. Signal to \gpio{3}.
+  \item \texttt{VBAT} $\to$ 100\,k $\to$ \gpio{0} $\to$ 100\,k $\to$ GND.
+  \item TTP223: VCC to \texttt{V3}, GND to GND, OUT to \gpio{4}.
+  \item 100--470\,\textmu F across the MT3608 output.
+\end{enumerate}
+
+\section{Firmware walkthrough}
+\begin{tabular}{@{}ll@{}}
+\toprule
+File & Role \\ \midrule
+\texttt{include/config.h} & every pin and tunable, build-variant switches \\
+\texttt{include/WingServo.h} & eased, non-blocking flapping; detaches when idle \\
+\texttt{include/TouchButton.h} & debounced press detection for both input types \\
+\texttt{include/Battery.h} & divider reading, filter, percent, latched low flag \\
+\texttt{include/StatusDisplay.h} & four-line OLED status \\
+\texttt{src/main.cpp} & state machine \\
+\texttt{tools/hwcheck/main.cpp} & I2C scan and ADC check \\
+\bottomrule
+\end{tabular}
+
+\paragraph{State machine.}
+\texttt{IDLE} $\xrightarrow{\text{touch}}$ \texttt{FLAPPING} $\xrightarrow{\text{touch}}$ \texttt{IDLE};
+any state $\xrightarrow{\text{low battery}}$ \texttt{LOW\_BATT} (latched, Phase 2).
+
+\paragraph{The core of the flap} (from \texttt{WingServo.h}):
+\begin{lstlisting}
+float t = float(now - t0_) / float(FLAP_MS);   // 0..1 progress of this stroke
+float e = 0.5f - 0.5f * cosf(PI * t);          // sine ease in-out
+angle_  = from_ + (to_ - from_) * e;           // interpolate between the ends
+servo_.write(int(angle_ + 0.5f));
+\end{lstlisting}
+
+\section{Build, flash, test}
+\begin{lstlisting}[language=bash]
+pio run -e hwcheck -t upload && pio device monitor   # confirm pins
+pio run -e bench    -t upload                        # Phase 1
+pio run -e wearable -t upload                        # Phase 2
+\end{lstlisting}
+\begin{enumerate}
+  \item \textbf{hwcheck:} an I2C device at \texttt{0x3C} on \gpio{5}/\gpio{6}. If not, fix \texttt{config.h} before continuing.
+  \item \textbf{bench, no servo:} OLED shows IDLE; each press toggles FLAPPING and the angle number moves.
+  \item \textbf{bench, with servo:} wings flap smoothly; if gears bind, lower \texttt{ANGLE\_CLOSED\_DEG}.
+  \item \textbf{wearable, on a bench supply or the 2000\,mAh cell:} compare the displayed voltage with a multimeter, then set \texttt{VBAT\_CAL}.
+  \item \textbf{Cutoff:} run from a supply you can lower slowly; confirm LOW BATT appears near the cutoff and wings stop.
+  \item \textbf{Runtime:} measure the real current. The estimate (1--1.5\,h from 250\,mAh) is unverified.
+\end{enumerate}
+
+\section{Troubleshooting}
+\begin{tabular}{@{}p{4.8cm}p{9.5cm}@{}}
+\toprule
+Symptom & Likely cause \\ \midrule
+Board resets when the servo moves & weak supply; add/enlarge the capacitor, shorten wires \\
+OLED blank & wrong pins; run \texttt{hwcheck} \\
+Servo buzzes at the end stops & travel too large; reduce \texttt{ANGLE\_CLOSED\_DEG} \\
+Battery reads wrong & divider values or \texttt{VBAT\_CAL}; check with a multimeter \\
+Touch toggles by itself & TTP223 floating or sharing a long wire; keep it short and grounded \\
+\bottomrule
+\end{tabular}
+
+\end{document}

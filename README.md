@@ -29,6 +29,8 @@ include/config.h    all pins and tunables (start here)
 include/*.h         WingServo, TouchButton, Battery, StatusDisplay (each documented)
 src/main.cpp        state machine: IDLE / FLAPPING / LOW_BATT
 tools/hwcheck/      I2C scan + ADC check
+cad/                OpenSCAD source (butterfly.scad), build script, assembly preview
+stl/                exported printable parts
 hardware/           BOM and wiring
 docs/               LaTeX guide
 ```

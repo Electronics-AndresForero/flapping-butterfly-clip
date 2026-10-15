@@ -20,10 +20,12 @@ against the physical part before ordering/committing.
 | 8 | Electrolytic capacitor, 100–470 µF, ≥10 V | 1 | Across the 5 V rail to stop servo-induced resets. Pick the smallest can that fits. | HAVE (kit) |
 | 9 | Resistors 100 kΩ | 2 | Battery-voltage divider to an ADC pin. | HAVE (kit) |
 | 10 | Heat-shrink tubing, assorted | few cm | Insulate every joint. Keep electronics off the metal clip and the skin. | HAVE |
-| 11 | Magnets 5 mm, ~8 | 8 | Optional: snap-on wings. Check the diameter and thickness against the wing STL before ordering. | BUY (optional) |
+| 11 | Magnets 5 mm | — | **Not used** by this repo's CAD (wings slot into the gear posts). Only buy if you modify the design for snap-on wings. | — |
 | 12 | M3 heat-set inserts + screws | few | Close the printed case so it can be opened repeatedly. | HAVE |
 | 13 | Single-cell LiPo charger (TP4056) | 1 | **Off-clip** charging only. Set the current to the cell's rating (swap Rprog for small cells). | HAVE (4) |
-| 14 | 3D-printed case, wings, gear train | — | PLA/PETG. Gear design: see the original v1 guide. | PRINT |
+| 14 | 3D-printed case, wings, gear train | 6 parts | PLA/PETG, files in `stl/`, source in `cad/butterfly.scad`. | PRINT |
+| 15 | M2 x 6 self-tapping screws | 3 | Horn screw + 2 servo flange screws. Usually supplied with the servo. | HAVE (with servo) |
+| 16 | Cable ties 2.5 mm | 2 | Strap the case to the hair clip through the floor slots. | BUY |
 
 Tools (all on hand): soldering station, multimeter, tweezers, 3D printer.
 

@@ -44,7 +44,7 @@ constexpr uint8_t PIN_VBAT     = 0;   // battery divider midpoint (ADC1_CH0)
 constexpr int      SERVO_MIN_US    = 500;    // pulse width at 0 degrees (microseconds)
 constexpr int      SERVO_MAX_US    = 2400;   // pulse width at 180 degrees
 constexpr float    ANGLE_OPEN_DEG  = 0.0f;   // wings open  (also the rest position)
-constexpr float    ANGLE_CLOSED_DEG= 135.0f; // wings closed. Lower it if the gears bind.
+constexpr float    ANGLE_CLOSED_DEG= 90.0f;  // wings closed. 1:1 gears -> wings sweep the same angle (90 = folded).
 constexpr uint32_t FLAP_MS         = 1500;   // time for ONE half-flap (open->closed)
 
 // ---------------------------------------------------------------------------

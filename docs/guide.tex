@@ -38,20 +38,74 @@ the original are reused. Please support the original creator, and credit them an
   \item Check the boost converter output with a multimeter \emph{before} connecting the board.
 \end{itemize}
 
-\section{Parts}
-The authoritative list is \texttt{hardware/BOM.md}. In short:
+\section{Bill of materials}
+The same list, with more detail, lives in \texttt{hardware/BOM.md}. Items marked \emph{verify} are typical
+values, not measurements of your parts: check them with calipers or a multimeter.
+
+\subsection{Phase 1, bench prototype}
+Everything is already in the workshop; nothing needs to be bought.
 \begin{center}
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{@{}p{5.2cm}cp{6.3cm}@{}}
 \toprule
-Part & Phase 1 & Phase 2 \\ \midrule
-Board & ESP32-C3 + 0.42'' OLED & same \\
-Servo & SG92R / MG90S (5\,V) & 2\,g, 3.7--4.2\,V \\
-Power & USB & 1S LiPo 150--300\,mAh (+ MT3608) \\
-Trigger & push-button & TTP223 touch module \\
-Extras & 470\,\textmu F cap & switch, divider 2$\times$100\,k, cap, 28--30\,AWG wire \\
+Item & Qty & Notes \\ \midrule
+ESP32-C3 board + 0.42'' OLED & 1 & 72$\times$40 px, USB-C \\
+Micro servo 5\,V (MG90S or SG92R) & 1 & MG90S first; SG92R is untested \\
+Push-button (or a jumper to GND) & 1 & trigger on \gpio{4} \\
+Electrolytic capacitor 470\,\textmu F & 1 & across \texttt{V5}/\texttt{GD} \\
+Breadboard, header strip, wire & -- & \\
+USB-C cable, PLA/PETG filament & -- & \\
+M2 self-tapping screws & 3 & horn + two flange screws (supplied with the servo) \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\subsection{Phase 2, wearable: items you already own}
+\begin{center}
+\begin{tabular}{@{}p{5.2cm}cp{6.3cm}@{}}
+\toprule
+Item & Qty & Notes \\ \midrule
+ESP32-C3 board + 0.42'' OLED & 1 & same board as Phase 1 \\
+Boost converter MT3608 & 1 & set to 5.0\,V before connecting; optional, see below \\
+Resistors 100\,k$\Omega$ & 2 & battery divider \\
+Electrolytic capacitor 100--470\,\textmu F, $\ge$10\,V & 1 & smallest can that fits \\
+TP4056 charger & 1 & charge \emph{off} the clip only \\
+Heat-shrink tubing & few\,cm & insulate every joint \\
+Soldering station, multimeter & -- & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Phase 2, wearable: items to buy}
+\begin{center}
+\begin{tabular}{@{}p{5.2cm}cp{6.3cm}@{}}
+\toprule
+Item & Qty & Notes \\ \midrule
+Micro servo, \textbf{2\,g, 3.7--4.2\,V} & 1 & the weight-critical part; fallback 3.7\,g servo \\
+1S LiPo, 150--300\,mAh, \textbf{with protection PCB} & 1 & e.g. 501230 / 502030 class; check connector polarity and pitch \\
+TTP223 capacitive touch module & 1 & 3.3\,V, digital output \\
+Slide switch (SS12D00G) & 1 & hard battery cut-off \\
+Silicone hook-up wire 28--30\,AWG & $\sim$1\,m & flexible and light \\
+Cable ties 2.5\,mm & 2 & strap the case to the clip through the floor slots \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Printed parts}
+Six parts in \texttt{stl/}, source in \texttt{cad/butterfly.scad}: drive gear, idler gear, left wing,
+right wing, case tray and case lid (PLA or PETG). The CAD uses no magnets; wings slot into the gear posts.
+The case is sized for an SG92R/MG90S class servo; the 2\,g servo needs the \texttt{micro2g} preset re-measured.
+
+\subsection{Power notes}
+\begin{itemize}
+  \item \textbf{With the boost:} battery $\to$ switch $\to$ MT3608 (5\,V) $\to$ board \texttt{V5}. The board stays
+        stable down to about 3.0\,V on the cell; costs about 2\,g, one part and roughly 15\,\% loss.
+  \item \textbf{Without the boost:} with a 3.7--4.2\,V servo, feed the cell straight to \texttt{V5} and raise
+        \texttt{VBAT\_CUTOFF\_MV} to 3500, because the board's regulator drops out near 3.5\,V.
+  \item \textbf{Runtime (estimate, not measured):} roughly 150--200\,mA from the cell, so about 1--1.5\,h from
+        250\,mAh. Measure it in Phase 1.
+  \item \textbf{Firmware cutoff:} wings stop at about 3.3\,V (3.5\,V without the boost); the cell's own
+        protection only cuts near 2.5\,V.
+\end{itemize}
 
 \section{Concepts}
 \subsection{How a hobby servo is controlled}
